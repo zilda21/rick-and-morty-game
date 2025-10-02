@@ -1,8 +1,9 @@
+# classic_morty.py
 from morty_base import MortyBase
 
-# ClassicMorty behaves same as base, but could be extended...
-
 class ClassicMorty(MortyBase):
- def __init__(self):
+    def __init__(self):
         super().__init__()
         print("Classic Morty is playing...")
+
+    # ClassicMorty never removes the gun → default probabilities are correct.
