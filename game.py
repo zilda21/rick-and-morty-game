@@ -58,7 +58,7 @@ def run_round(round_no, boxes, morty_cls):
         "HMAC2": h2[:16],
     }
 
-def main():
+def start_game():
     if len(sys.argv) < 3:
         print("Error: Missing arguments.\nUsage: python game.py <boxes> <MortyClass>\nExample: python game.py 3 classic_morty.ClassicMorty")
         return
@@ -115,5 +115,5 @@ def main():
     print(f"Win probability (experiment): {wins/rounds:.2f}")
     print(f"Win probability (calculated): stay={p_stay:.4f}, switch={p_switch:.4f}")
 
-if __name__ == "__main__":
-    main()
+if __name__ == "start_game":
+    start_game()
