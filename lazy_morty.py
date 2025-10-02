@@ -1,8 +1,16 @@
-# lazy_morty.py
-from morty_base import MortyBase
-
-class LazyMorty(MortyBase):
-    def __init__(self):
-        super().__init__()
+class LazyMorty:
+    def play(self, n_boxes: int, guess: int) -> tuple:
+        """
+        Lazy Morty:
+        - Never removes the box with the portal gun.
+        - Always keeps the lowest possible index box.
+        """
         print("Lazy Morty yawns... let's see what happens.")
-    # uses base probabilities too
+        
+     
+        gun_box = 0
+
+        # 
+        keep = 0 if guess != 0 else 1
+
+        return keep, gun_box
