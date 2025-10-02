@@ -1,151 +1,121 @@
-import sys
 import importlib
 from utils import generate_key, hmac_sha3_256, secure_random
+from terminaltables import AsciiTable
 
-def ask_int(prompt: str, lo: int, hi_inclusive: int) -> int:
+
+def run_round(n_boxes: int, morty_cls) -> tuple:
+   
+    k1 = generate_key()
+    m1 = secure_random(n_boxes)
+    h1 = hmac_sha3_256(k1, m1)
+
+    print(f"Morty: HMAC1={h1}")
     while True:
         try:
-            v = int(input(f"{prompt} ({lo}..{hi_inclusive}): ").strip())
-            if lo <= v <= hi_inclusive:
-                return v
-            print(f"Invalid choice. Enter a number between {lo} and {hi_inclusive}.")
+            r1 = int(input(f"Morty: Rick, enter your number [0,{n_boxes}) so you don’t whine later that I cheated, alright? "))
+            if 0 <= r1 < n_boxes:
+                break
+            else:
+                print(f"Morty: Uh… enter a number in [0,{n_boxes}) please.")
         except ValueError:
-            print("Invalid input. Please enter a number.")
+            print("Morty: That's not even a number, Rick!")
 
-def run_round(round_no, boxes, morty_cls):
-    print(f"\n--- New Round ---")
+    guess = int(input(f"Morty: Okay, okay, I hid the gun. What’s your guess [0,{n_boxes})? "))
+    print(f"Rick: {guess}")
 
-    k1 = generate_key()
-    m1 = secure_random(boxes)              
-    h1 = hmac_sha3_256(k1, m1)             
-    print(f"HMAC1 (K1,m1) = {h1}")
-    r1 = ask_int("Rick, enter your number for fair gen [r1]", 0, boxes - 1)
-    gun_box = (m1 + r1) % boxes            
-
-   
-    guess = ask_int("Rick, what is your box guess?", 0, boxes - 1)
-    print(f"Rick chose box {guess}")
-
-    
-    other_boxes = [i for i in range(boxes) if i != guess]
     morty = morty_cls()
+    keep, gun_box = morty.play(n_boxes, guess)
 
-    keep_box = None
-    h2 = k2 = m2 = r2 = None
+    k2 = generate_key()
+    m2 = secure_random(n_boxes - 1)
+    h2 = hmac_sha3_256(k2, m2)
 
-    if morty_cls.__name__ == "ClassicMorty":
-      
-        k2 = generate_key()
-        m2 = secure_random(len(other_boxes))
-        h2 = hmac_sha3_256(k2, m2)
-        print(f"HMAC2 (K2,m2) = {h2}")
+    print("Morty: Let’s, uh, generate another value now, I mean, to select a box to keep in the game.")
+    print(f"Morty: HMAC2={h2}")
+    while True:
+        try:
+            r2 = int(input(f"Morty: Rick, enter your number [0,{n_boxes-1}), and, uh, don’t say I didn’t play fair, okay? "))
+            if 0 <= r2 < (n_boxes - 1):
+                break
+            else:
+                print(f"Morty: Uh… enter a number in [0,{n_boxes-1}) please.")
+        except ValueError:
+            print("Morty: That’s not even a number, Rick!")
 
-        r2 = ask_int("Rick, enter your number for fair gen [r2]", 0, len(other_boxes) - 1)
-        idx = (m2 + r2) % len(other_boxes)
-
-        keep_box = gun_box if guess != gun_box else other_boxes[idx]
-        print(f"Morty keeps box {keep_box} closed (others would be revealed).")
-    else:
-      
-        keep_box = gun_box if guess != gun_box else min(other_boxes)
-        print(f"Morty (lazy) keeps box {keep_box} closed (no randomness).")
-
-    sw = input("Switch to the other closed box? (y/n): ").strip().lower()
-    final_choice = keep_box if sw == "y" else guess
-    print(f"Rick {'switches' if sw == 'y' else 'stays'} → final box {final_choice}")
-
- 
-    print(f"Reveal #1: m1={m1}, r1={r1}, K1={k1}")
-    print(f"Check: (m1 + r1) % {boxes} = {(m1 + r1) % boxes}")
-    if h1 != hmac_sha3_256(k1, m1):
-        print("WARNING: HMAC1 mismatch!")
-
-    if morty_cls.__name__ == "ClassicMorty":
-        print(f"Reveal #2: m2={m2}, r2={r2}, K2={k2}")
-        print(f"Check: (m2 + r2) % {len(other_boxes)} = {(m2 + r2) % len(other_boxes)}")
-        if h2 != hmac_sha3_256(k2, m2):
-            print("WARNING: HMAC2 mismatch!")
+    print(f"Morty: I'm keeping the box you chose, I mean {guess}, and the box {keep}.")
+    choice = int(input("Morty: You can switch your box (enter 0), or, you know, stick with it (enter 1).  "))
+    final_box = keep if choice == 0 else guess
 
    
-    print(f"Gun was in box {gun_box}")
-    win = (final_choice != gun_box)    
-    print("Result:", "Rick survives!" if win else "Rick dies...")
+    print(f"Morty: Aww man, my 1st random value is {m1}.")
+    print(f"Morty: KEY1={k1.hex()}")
+    print(f"Morty: So the 1st fair number is ({r1} + {m1}) % {n_boxes} = {(r1 + m1) % n_boxes}.")
 
-  
-    short = lambda s: s[:16] if s else "-"
-    return {
-        "Rnd": round_no,
-        "HMAC1": short(h1),
-        "m1+r1 mod N": (m1 + r1) % boxes,
-        "Guess": guess,
-        "Keep": keep_box,
-        "Final": final_choice,
-        "Gun": gun_box,
-        "Win": "Yes" if win else "No",
-        "HMAC2": short(h2),
-    }
+    print(f"Morty: Aww man, my 2nd random value is {m2}.")
+    print(f"Morty: KEY2={k2.hex()}")
+    print(f"Morty: Uh, okay, the 2nd fair number is ({r2} + {m2}) % {n_boxes-1} = {(r2 + m2) % (n_boxes-1)}")
+
+    print(f"Morty: Your portal gun is in the box {gun_box}.")
+    if final_box == gun_box:
+        print("Morty: Whoa, Rick survives!")
+        return choice == 0, True
+    else:
+        print("Morty: Aww man, you lost, Rick. Now we gotta go on one of *my* adventures!")
+        return choice == 0, False
+
 
 def main():
-    if len(sys.argv) < 3:
-        print("Error: Missing arguments.\nUsage: python game.py <boxes> <MortyClass>\nExample: python game.py 3 classic_morty.ClassicMorty")
+    import sys
+    if len(sys.argv) != 3:
+        print("Usage: python game.py <num_boxes> <morty_class>")
         return
 
     try:
-        boxes = int(sys.argv[1])
+        n_boxes = int(sys.argv[1])
+        if n_boxes < 3:
+            raise ValueError
     except ValueError:
-        print("Error: First argument must be an integer (number of boxes).")
-        return
-    if boxes <= 2:
-        print("Error: Number of boxes must be greater than 2.")
+        print("Number of boxes must be an integer >= 3.")
         return
 
-    morty_path = sys.argv[2]
-    try:
-        module_name, class_name = morty_path.split(".")
-        mod = importlib.import_module(module_name)
-        morty_cls = getattr(mod, class_name)
-    except Exception:
-        print(f"Error: Morty implementation '{morty_path}' not found.")
-        return
+    morty_module, morty_class = sys.argv[2].rsplit(".", 1)
+    morty_cls = getattr(importlib.import_module(morty_module), morty_class)
 
-    print(f"\n=== Rick & Morty Game ===")
-    print(f"Boxes: {boxes}, Morty: {morty_path}")
+    print("\n=== Rick & Morty Game ===")
+    print(f"Boxes: {n_boxes}, Morty: {sys.argv[2]}")
 
-    rows, wins, rounds_played = [], 0, 0
+    rounds = {"switch": {"rounds": 0, "wins": 0},
+              "stay": {"rounds": 0, "wins": 0}}
+
     while True:
-        rounds_played += 1
-        row = run_round(rounds_played, boxes, morty_cls)
-        rows.append(row)
-        if row["Win"] == "Yes":
-            wins += 1
+        did_switch, win = run_round(n_boxes, morty_cls)
+        if did_switch:
+            rounds["switch"]["rounds"] += 1
+            if win:
+                rounds["switch"]["wins"] += 1
+        else:
+            rounds["stay"]["rounds"] += 1
+            if win:
+                rounds["stay"]["wins"] += 1
 
-       
-        again = input("Play another round? (y/n): ").strip().lower()
+        again = input("Morty: D-do you wanna play another round (y/n)? ").strip().lower()
         if again != "y":
             break
 
-   
-    try:
-        from tabulate import tabulate
-        print("\n--- Results Table ---")
-        headers = ["Rnd","HMAC1","m1+r1 mod N","Guess","Keep","Final","Gun","Win","HMAC2"]
-        data = [[row[h] for h in headers] for row in rows]
-        print(tabulate(data, headers=headers, tablefmt="grid"))
-    except Exception:
-        print("\n--- Results Table (plain) ---")
-        headers = ["Rnd","HMAC1","m1+r1 mod N","Guess","Keep","Final","Gun","Win","HMAC2"]
-        line = " | ".join(f"{h:>10}" for h in headers)
-        print(line)
-        print("-" * len(line))
-        for row in rows:
-            print(" | ".join(f"{str(row[h]):>10}" for h in headers))
 
-   
-    p_stay, p_switch = morty_cls().theoretical_probabilities(boxes)
-    print(f"\n--- Summary ---")
-    print(f"Rounds: {rounds_played}, Wins: {wins}, Losses: {rounds_played - wins}")
-    print(f"Win probability (experiment): {wins/rounds_played:.2f}")
-    print(f"Win probability (calculated by {morty_cls.__name__}): stay={p_stay:.4f}, switch={p_switch:.4f}")
+    table_data = [
+        ["Game results", "Rick switched", "Rick stayed"],
+        ["Rounds", rounds["switch"]["rounds"], rounds["stay"]["rounds"]],
+        ["Wins", rounds["switch"]["wins"], rounds["stay"]["wins"]],
+        ["P (estimate)",
+         f"{(rounds['switch']['wins'] / rounds['switch']['rounds']):.3f}" if rounds['switch']['rounds'] > 0 else "?",
+         f"{(rounds['stay']['wins'] / rounds['stay']['rounds']):.3f}" if rounds['stay']['rounds'] > 0 else "?"],
+        ["P (exact)", f"{(n_boxes - 1) / n_boxes:.3f}", f"{1 / n_boxes:.3f}"]
+    ]
+
+    table = AsciiTable(table_data, "GAME STATS")
+    print(table.table)
+
 
 if __name__ == "__main__":
     main()
