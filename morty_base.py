@@ -1,13 +1,7 @@
 from utils import generate_key, hmac_sha256, secure_random
 
 class MortyBase:
-    """
-    Default collaborative randomness:
-    - commit(): publish HMAC(K2, m2)
-    - pick_keep_index(r2, n_minus_one): returns (m2 + r2) % (N-1)
-    - reveal(): returns (K2, m2) for verification
-    Subclasses may override messages/behavior, but this satisfies the spec.
-    """
+   
     def __init__(self):
         self._k2 = None
         self._m2 = None
