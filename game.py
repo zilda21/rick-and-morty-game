@@ -115,7 +115,7 @@ def start_game():
     print(f"Win probability (experiment): {wins/rounds:.2f}")
     print(f"Win probability (calculated): stay={p_stay:.4f}, switch={p_switch:.4f}")
 
-if __name__ == "start_game":
+if __name__ == "__main__":
     start_game()
 
 #  maybe try with more rounds later
