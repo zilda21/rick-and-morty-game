@@ -1,9 +1,23 @@
-# classic_morty.py
-from morty_base import MortyBase
+import random
 
-class ClassicMorty(MortyBase):
-    def __init__(self):
-        super().__init__()
+class ClassicMorty:
+    def play(self, n_boxes: int, guess: int) -> tuple:
+        """
+        Classic Morty:
+        - Never removes the box with the portal gun.
+        - If Rick guessed correctly, he picks a random other box to keep.
+        - If Rick guessed wrong, he always keeps the gun box hidden.
+        """
         print("Classic Morty is playing...")
+        
+        
+        gun_box = random.randint(0, n_boxes - 1)
 
-    # ClassicMorty never removes the gun → default probabilities are correct.
+        if guess == gun_box:
+           
+            keep = random.choice([i for i in range(n_boxes) if i != guess])
+        else:
+           
+            keep = gun_box
+
+        return keep, gun_box
