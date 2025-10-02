@@ -10,7 +10,7 @@ class MortyBase:
     def commit(self, n_minus_one: int) -> str:
         self._k2 = generate_key()
         self._m2 = secure_random(max(n_minus_one, 1))
-        self._commit = hmac_sha256(self._k2, self._m2)
+        self._proof  = hmac_sha256(self._k2, self._m2)
         return self._proof
 
     def pick_keep_index(self, r2: int, n_minus_one: int) -> int:
