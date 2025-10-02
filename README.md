@@ -1,5 +1,3 @@
-This is my submission for Task #4.
-
 ## Running Commands
 
 # Classic Morty with 3 boxes
