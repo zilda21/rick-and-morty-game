@@ -1,7 +1,7 @@
 import sys
 import importlib # implemting to dynamically load a Morty class by its name 
 from utils import generate_key, hmac_sha256, secure_random #<- I use this to pick random boxes or Rick's first choice
-# not sure if this is the best way, but it works for the fairness check
+# not sure if this is the best way found in (Stack OF), but it works for the fairness check
 
 
 def theoretical_probs(n: int):
