@@ -10,7 +10,6 @@ class LazyMorty:
      
         gun_box = 0
 
-        # 
         keep = 0 if guess != 0 else 1
 
         return keep, gun_box
