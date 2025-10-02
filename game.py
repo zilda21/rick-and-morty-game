@@ -1,6 +1,8 @@
 import sys
-import importlib
-from utils import generate_key, hmac_sha256, secure_random
+import importlib # implemting to dynamically load a Morty class by its name 
+from utils import generate_key, hmac_sha256, secure_random # <- generate_key()  -> makes a random secret key
+# hmac_sha256()   -> creates a hash-based proof for fairness
+# secure_random() -> generates a secure random number like for boxes...
 
 def theoretical_probs(n: int):
     return 1.0 / n, (n - 1.0) / n  
@@ -32,13 +34,11 @@ def run_round(round_no, boxes, morty_cls):
     keep_index_in_others = morty.pick_keep_index(r2, len(other_boxes))
     keep_box = other_boxes[keep_index_in_others]
     print(f"Morty keeps box {keep_box} closed (others would be revealed)")
-
     
     k2, m2 = morty.reveal()
     ok = (hmac_sha256(k2, m2) == h2)
     print(f"Morty reveal OK: {ok}. K2={k2}, m2={m2}")
 
-    
     final_choice = keep_box
     print(f"Rick switches to box {final_choice}")
 
@@ -92,7 +92,6 @@ def main():
         rows.append(row)
         if row["Win"] == "Yes":
             wins += 1
-
    
     print("\n--- Results Table ---")
     headers = ["Rnd","HMAC1","Rick","Keep","Final","Gun","Win","HMAC2"]
@@ -110,8 +109,6 @@ def main():
             f"{row['Win']:>5}",
             f"{row['HMAC2']:>5}",
         ]))
-
-   
     p_stay, p_switch = theoretical_probs(boxes)
     print(f"\n--- Summary ---")
     print(f"Rounds: {rounds}, Wins: {wins}, Losses: {rounds - wins}")
